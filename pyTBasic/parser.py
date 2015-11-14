@@ -121,7 +121,7 @@ class BasicParser:
          line ::= number statement CR | statement CR
         '''
         if self._accept('NUM'):
-            num = self.tok.value
+            num = self.try_int(self.tok.value)
             right = self.statement()
             ret_val = (num, right)
         else:
@@ -156,15 +156,15 @@ class BasicParser:
             elif self.tok.value == 'GOSUB':
                 ret_val = self.kw_gosub()
             elif self.tok.value == 'RETURN':
-                pass
+                return 'RETURN'
             elif self.tok.value == 'CLEAR':
-                pass
+                return 'CLEAR'
             elif self.tok.value == 'LIST':
-                pass
+                return self.kw_list()
             elif self.tok.value == 'RUN':
-                pass
+                return 'RUN'
             elif self.tok.value == 'END':
-                pass
+                return 'END'
         else:
             ret_val = self.expr()
         return ret_val
@@ -180,17 +180,12 @@ class BasicParser:
     def kw_if(self):
         kw = self.tok.value
         left_expr = self.expr()
-        if self._accept('RELOP'):
-            relop = self.tok.value
-            right_expr = self.expr()
-        else:
-            raise SyntaxError('Expected RELOP')
-        if self.nexttok.value == 'THEN':
-            self._accept('KWORD')
-            kw2 = 'THEN'
-            then_statement = self.statement()
-        else:
-            raise SyntaxError('Expected THEN')
+        self._expect('RELOP')
+        relop = self.tok.value
+        right_expr = self.expr()
+        self._expect('KWORD')
+        kw2 = 'THEN'
+        then_statement = self.statement()
         return (kw, (relop, left_expr, right_expr), kw2, then_statement)
 
     def kw_goto(self):
@@ -207,15 +202,13 @@ class BasicParser:
 
     def kw_let(self):
         kw = self.tok.value
-        if self._accept('VAR'):
-            var = self.tok.value
-            if self._accept('RELOP') and self.tok.value == '=':
-                op = '='
-                expr_val = self.expr()
-            else:
-                raise SyntaxError('Expected EQUAL operator.')
-        else:
-            raise SyntaxError('Expected VAR')
+        self._expect('VAR')
+        var = self.tok.value
+        self._expect('RELOP')
+        op = self.tok.value
+        if op != '=':
+            raise SyntaxError('Expected EQUAL')
+        expr_val = self.expr()
         return (kw, (op, var, expr_val))
 
     def kw_gosub(self):
@@ -223,6 +216,16 @@ class BasicParser:
         right = self.expr()
         if not right:
             raise SyntaxError('Expected EXPRESSION')
+        return (kw, right)
+
+    def kw_list(self):
+        kw = 'LIST'
+        if self._accept('NUM'):
+            right = self.try_int(self.tok.value)
+        elif self.nexttok:
+            raise SyntaxError('Expected NUM')
+        else:
+            return (kw)
         return (kw, right)
 
     def expr_list(self):
@@ -258,12 +261,10 @@ class BasicParser:
         var-list ::= var (, var)*
         '''
         var_list = []
-        while self._accept('VAR'):
+        while self.nexttok and self._accept('VAR'):
             var_list.append(self.tok.value)
-            if self._accept('COM'):
-                continue
-            elif self._accept('VAR'):
-                raise SyntaxError('Expected COMMA')
+            if self.nexttok:
+                self._expect('COM')
             else:
                 break
         return tuple(var_list)
@@ -305,7 +306,7 @@ class BasicParser:
         if self.nexttok and self.nexttok.type == 'PLUS':
             self._accept('PLUS')
             if self._accept('NUM'):
-                ret_val = int(self.tok.value)
+                ret_val = self.try_int(self.tok.value)
             elif self._accept('VAR'):
                 ret_val = str(self.tok.value)
             else:
@@ -314,13 +315,13 @@ class BasicParser:
         elif self.nexttok and self.nexttok.type == 'MINUS':
             self._accept('MINUS')
             if self._accept('NUM'):
-                ret_val = int(-(int(self.tok.value)))
+                ret_val = int(-(self.try_int(self.tok.value)))
             elif self._accept('VAR'):
                 ret_val = '-'+str(self.tok.value)
             else:
                 raise SyntaxError('Expected NUM or VAR')
         elif self._accept('NUM'):
-            ret_val = int(self.tok.value)
+            ret_val = self.try_int(self.tok.value)
         elif self._accept('VAR'):
             ret_val = str(self.tok.value)
         elif self._accept('LPAREN'):
@@ -333,3 +334,10 @@ class BasicParser:
         else:
             raise SyntaxError('Expected NUMBER or LPAREN')
         return ret_val
+
+    def try_int(self, integer):
+        try:
+            new_int = int(integer)
+        except ValueError:
+            raise SyntexError('Expected NUM')
+        return new_int
