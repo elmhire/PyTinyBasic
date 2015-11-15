@@ -2,6 +2,7 @@
 
 import re
 from collections import namedtuple
+from pyTBasic.basic_types import *
 
 ''' Tiny Basic Grammar, EBNF
 
@@ -75,7 +76,7 @@ def generate_tokens(text):
         tok = Token(match.lastgroup, match.group())
         if tok.type != 'WS':
             if tok.type == 'VAR':
-                yield Token('VAR', 'V_' + tok.value)
+                yield Token('VAR', tok.value)
             else:
                 yield tok
 
@@ -170,63 +171,76 @@ class BasicParser:
         return ret_val
 
     def kw_print(self):
-        kw = self.tok.value
         if not self.nexttok:
-            return (kw, '')
+            return (Print([]))
         right = self.expr_list()
-        ret_val = (kw, right)
+        ret_val = Print(right)
         return ret_val
 
     def kw_if(self):
-        kw = self.tok.value
+        #kw = self.tok.value
         left_expr = self.expr()
         self._expect('RELOP')
         relop = self.tok.value
         right_expr = self.expr()
+        if relop == '<>' or relop == '><':
+            if_expr = NotEqual(left_expr, right_expr)
+        elif relop == '>=':
+            if_expr = GreaterOrEqualThan(left_expr, right_expr)
+        elif relop == '>':
+            if_expr = GreaterThan(left_expr, right_expr)
+        elif relop == '<=':
+            if_expr = LessOrEqualThan(left_expr, right_expr)
+        elif relop == '<':
+            if_expr = LessThan(left_expr, right_expr)
+        else:
+            if_expr = Equal(left_expr, right_expr)
         self._expect('KWORD')
-        kw2 = 'THEN'
+        #kw2 = 'THEN'
         then_statement = self.statement()
-        return (kw, (relop, left_expr, right_expr), kw2, then_statement)
+        #return (kw, (relop, left_expr, right_expr), kw2, then_statement)
+        return If(if_expr, then_statement)
 
     def kw_goto(self):
-        kw = self.tok.value
+        #kw = self.tok.value
         if not self.nexttok:
             raise SyntaxError('Expected NUM')
         right = self.expr()
-        return (kw, right)
+        #return (kw, right)
+        return Goto(right)
 
     def kw_input(self):
-        kw = self.tok.value
+        #kw = self.tok.value
         right = self.var_list()
-        return (kw, right)
+        return Input(right)
 
     def kw_let(self):
-        kw = self.tok.value
+        #kw = self.tok.value
         self._expect('VAR')
-        var = self.tok.value
+        var = Var(self.tok.value)
         self._expect('RELOP')
-        op = self.tok.value
-        if op != '=':
+        #op = self.tok.value
+        if self.tok.value != '=':
             raise SyntaxError('Expected EQUAL')
         expr_val = self.expr()
-        return (kw, (op, var, expr_val))
+        return Let(Assign(var, expr_val))
 
     def kw_gosub(self):
-        kw = 'GOSUB'
+        #kw = 'GOSUB'
         right = self.expr()
         if not right:
             raise SyntaxError('Expected EXPRESSION')
-        return (kw, right)
+        return Gosub(right)
 
     def kw_list(self):
-        kw = 'LIST'
+        #kw = 'LIST'
         if self._accept('NUM'):
-            right = self.try_int(self.tok.value)
+            right = Num(self.try_int(self.tok.value))
         elif self.nexttok:
             raise SyntaxError('Expected NUM')
         else:
-            return (kw)
-        return (kw, right)
+            return List(None)
+        return List(right)
 
     def expr_list(self):
         '''
@@ -240,21 +254,14 @@ class BasicParser:
 
         while self._accept('STRNG') or self._accept('COM'):
             if self.tok.type == 'STRNG':
-                expr_list.append(self.tok.value)
+                #expr_list.append(self.tok.value)
+                expr_list.append(String(self.tok.value.strip('"')))
             elif self.nexttok.type != 'STRNG':
                 expr_list.append(self.expr())
-
         if self.nexttok:
             raise SyntaxError('Expected COMA')
 
-        if len(expr_list) > 1:
-            expr_string = tuple(i.strip('"') if type(i) == type('') else i
-                               for i in expr_list)
-        else:
-            expr_string = (expr_list[0].strip('"')
-                           if type(expr_list[0]) == type('') else expr_list[0])
-
-        return expr_string
+        return expr_list
 
     def var_list(self):
         '''
@@ -262,12 +269,12 @@ class BasicParser:
         '''
         var_list = []
         while self.nexttok and self._accept('VAR'):
-            var_list.append(self.tok.value)
+            var_list.append(Var(self.tok.value))
             if self.nexttok:
                 self._expect('COM')
             else:
                 break
-        return tuple(var_list)
+        return var_list
 
     def expr(self):
         '''
@@ -275,13 +282,16 @@ class BasicParser:
 
         '''
         expr_val = self.term()
+        #print(expr_val)
         while self._accept('PLUS') or self._accept('MINUS'):
             op = self.tok.type
             right = self.term()
             if op == 'PLUS':
-                expr_val = ('+', expr_val, right)
+                #expr_val = ('+', expr_val, right)
+                expr_val = Add(expr_val, right)
             elif op == 'MINUS':
-                expr_val = ('-', expr_val, right)
+                #expr_val = ('-', expr_val, right)
+                expr_val = Sub(expr_val, right)
         return expr_val
 
     def term(self):
@@ -293,9 +303,9 @@ class BasicParser:
             op = self.tok.type
             right = self.factor()
             if op == 'TIMES':
-                term_val = ('*', term_val, right)
+                term_val = Mul(term_val, right)
             elif op == 'DIVIDE':
-                term_val = ('/', term_val, right)
+                term_val = Div(term_val, right)
         return term_val
 
     def factor(self):
@@ -306,24 +316,26 @@ class BasicParser:
         if self.nexttok and self.nexttok.type == 'PLUS':
             self._accept('PLUS')
             if self._accept('NUM'):
-                ret_val = self.try_int(self.tok.value)
+                ret_val = Num(self.try_int(self.tok.value))
             elif self._accept('VAR'):
-                ret_val = str(self.tok.value)
+                ret_val = Var(str(self.tok.value))
             else:
                 raise SyntaxError('Expected NUM or VAR')
         # Is the next token a MINUS operator. Case is unary MINUS
         elif self.nexttok and self.nexttok.type == 'MINUS':
             self._accept('MINUS')
             if self._accept('NUM'):
-                ret_val = int(-(self.try_int(self.tok.value)))
+                ret_val = Num(int(-(self.try_int(self.tok.value))))
             elif self._accept('VAR'):
-                ret_val = '-'+str(self.tok.value)
+                ret_val = Var('-'+str(self.tok.value))
             else:
                 raise SyntaxError('Expected NUM or VAR')
         elif self._accept('NUM'):
-            ret_val = self.try_int(self.tok.value)
+            ret_val = Num(self.try_int(self.tok.value))
+            #ret_val = self.try_int(self.tok.value)
         elif self._accept('VAR'):
-            ret_val = str(self.tok.value)
+            ret_val = Var(str(self.tok.value))
+            #ret_val = str(self.tok.value)
         elif self._accept('LPAREN'):
             expr_val = self.expr()
             self._expect('RPAREN')
