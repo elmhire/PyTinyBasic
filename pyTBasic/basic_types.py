@@ -24,7 +24,10 @@ class BinaryOperator(Node):
 
     def __repr__(self):
         return ''.join([str(type(self).__name__),
-                        '(', repr(self.left), ',', repr(self.right), ')'])
+                        '(', repr(self.left), ', ', repr(self.right), ')'])
+
+class LineNum(BinaryOperator):
+    pass
 
 # Operators
 class Add(BinaryOperator):
@@ -73,9 +76,6 @@ class String(Node):
     def __init__(self, value):
         self.value = value
 
-    def __repr__(self):
-        return ''.join([str(type(self).__name__), '(', str(self.value), ')'])
-
 # Keywords
 class Print(UnaryOperator):
     pass
@@ -95,7 +95,19 @@ class Let(UnaryOperator):
 class Gosub(UnaryOperator):
     pass
 
+class Return(UnaryOperator):
+    pass
+
+class Clear(UnaryOperator):
+    pass
+
 class List(UnaryOperator):
+    pass
+
+class Run(UnaryOperator):
+    pass
+
+class End(UnaryOperator):
     pass
 
 if __name__ == '__main__':

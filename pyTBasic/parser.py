@@ -44,7 +44,7 @@ Added by me (maybe help with negative numbers?):
    binary_op ::= "+" | "-" | "*" | "/" | "%" | "**"
 '''
 
-KWORD   = r'(?P<KWORD>PRINT|IF|THEN|GOTO|INPUT|LET|GOSUB|RETURN|CLEAR|LIST|RUN|END)'
+KWORD   = r'(?P<KWORD>PRINT|IF|THEN|GOTO|INPUT|LET|GOSUB|RETURN|CLEAR|LIST|RUN|END|QUIT)'
 STRNG   = r'(?P<STRNG>"([^"]*)")'
 VAR     = r'(?P<VAR>[A-Z])'
 NUM     = r'(?P<NUM>\d*\.\d+|\d+)'
@@ -80,7 +80,9 @@ def generate_tokens(text):
             else:
                 yield tok
 
-
+kwords = ('PRINT', 'IF', 'GOTO', 'INPUT',
+          'LET', 'GOSUB', 'RETURN', 'CLEAR',
+          'LIST', 'RUN', 'END')
 # Parser
 class BasicParser:
     '''
@@ -121,10 +123,11 @@ class BasicParser:
         '''
          line ::= number statement CR | statement CR
         '''
+        #print(self.nexttok)
         if self._accept('NUM'):
-            num = self.try_int(self.tok.value)
+            num = Num(self.try_int(self.tok.value))
             right = self.statement()
-            ret_val = (num, right)
+            ret_val = LineNum(num, right)
         else:
             ret_val = self.statement()
         return ret_val
@@ -157,15 +160,17 @@ class BasicParser:
             elif self.tok.value == 'GOSUB':
                 ret_val = self.kw_gosub()
             elif self.tok.value == 'RETURN':
-                return 'RETURN'
+                return Return(None)
             elif self.tok.value == 'CLEAR':
-                return 'CLEAR'
+                return Clear(None)
             elif self.tok.value == 'LIST':
                 return self.kw_list()
             elif self.tok.value == 'RUN':
-                return 'RUN'
+                return Run(None)
             elif self.tok.value == 'END':
-                return 'END'
+                return End(None)
+            elif self.tok.value == 'QUIT':
+                exit()
         else:
             ret_val = self.expr()
         return ret_val
@@ -217,7 +222,7 @@ class BasicParser:
     def kw_let(self):
         #kw = self.tok.value
         self._expect('VAR')
-        var = Var(self.tok.value)
+        var = String(self.tok.value)
         self._expect('RELOP')
         #op = self.tok.value
         if self.tok.value != '=':
@@ -299,7 +304,8 @@ class BasicParser:
         term ::= factor ((*|/) factor)*
         '''
         term_val = self.factor()
-        while self._accept('TIMES') or self._accept('DIVIDE'):
+        while self._accept('TIMES') or self._accept('DIVIDE') and\
+              (self.nexttok.type == 'NUM' or self.nexttok.type == 'VAR'):
             op = self.tok.type
             right = self.factor()
             if op == 'TIMES':
