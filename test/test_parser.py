@@ -4,31 +4,35 @@ import unittest
 from pyTBasic import parser
 from pyTBasic.basic_types import *
 
+
 class BasicParserTest(unittest.TestCase):
     def setUp(self):
         self.e = parser.BasicParser()
 
-    #def test_expr(self):
-        #test_expr1 = 'X - -2 * 2'
-        #test_expr2 = '(-X + +Y) - +2 * 2'
-        #test_expr3 = '((4 + 2) / (7 + 5) - 2) * 3'
-        #expr_parsed1 = Sub(Var('X'), (Mul(Num(-2), Num(2))))
-        #expr_parsed2 = Sub(Add( Var('-X'), Var('Y')), Mul(Num(2), Num(2)))
-        #expr_parsed3 = Mul(Sub(Div(Add(Num(4), Num(2)), Add(Num(7), Num(5))),
-                               #Num(2)), Num(3))
+    def test_expr(self):
+        test_expr1 = 'PRINT X - -2 * 2'
+        test_expr2 = 'PRINT (-X + +Y) - +2 * 2'
+        test_expr3 = 'PRINT ((4 + 2) / (7 + 5) - 2) * 3'
+        test_expr4 = 'PRINT 2 + 10 / (2 + 2)'
+        expr_parsed1 = Print([Sub(Var('X'), (Mul(Num(-2), Num(2))))])
+        expr_parsed2 = Print([Sub(Add(Var('-X'), Var('Y')), Mul(Num(2), Num(2)))])
+        expr_parsed3 = Print([Mul(Sub(Div(Add(Num(4), Num(2)), Add(Num(7), Num(5))),
+                               Num(2)), Num(3))])
+        expr_parsed4 = Print([Add(Num(2), Div(Num(10), Add(Num(2), Num(2))))])
 
-        #self.assertEqual(self.e.parse(test_expr1), expr_parsed1)
-        #self.assertEqual(self.e.parse(test_expr2), expr_parsed2)
-        #self.assertEqual(self.e.parse(test_expr3), expr_parsed3)
+        self.assertEqual(self.e.parse(test_expr1), expr_parsed1)
+        self.assertEqual(self.e.parse(test_expr2), expr_parsed2)
+        self.assertEqual(self.e.parse(test_expr3), expr_parsed3)
+        self.assertEqual(self.e.parse(test_expr4), expr_parsed4)
 
-    #def test_line(self):
-        #line_test1 = '10 PRINT X'
-        #line_test2 = 'PRINT X - 2'
-        #parsed_test1 = (10, ('PRINT', ('V_X')))
-        #parsed_test2 = ('PRINT', ('-', 'V_X', 2))
+    # def test_line(self):
+        # line_test1 = '10 PRINT X'
+        # line_test2 = 'PRINT X - 2'
+        # parsed_test1 = (10, ('PRINT', ('V_X')))
+        # parsed_test2 = ('PRINT', ('-', 'V_X', 2))
 
-        #self.assertEqual(self.e.parse(line_test1), parsed_test1)
-        #self.assertEqual(self.e.parse(line_test2), parsed_test2)
+        # self.assertEqual(self.e.parse(line_test1), parsed_test1)
+        # self.assertEqual(self.e.parse(line_test2), parsed_test2)
 
     def test_print_statement(self):
         print_statement1 = 'PRINT "The variable B is ", B'
@@ -39,7 +43,7 @@ class BasicParserTest(unittest.TestCase):
         print_statement6 = 'PRINT X - 2, " is x - 2."'
         print_statement7 = 'PRINT ((((( ((((( ((((( 15 ))))) ))))) )))))'
         print_statement8 = 'PRINT'
-        parsed_statement1 = Print( [String('The variable B is '), Var('B')] )
+        parsed_statement1 = Print([String('The variable B is '), Var('B')])
         parsed_statement2 = Print([String('Hello, World!')])
         parsed_statement3 = Print([String('B is '), Var('B'), String(' cents '),
                                    Var('C')])
@@ -75,10 +79,10 @@ class BasicParserTest(unittest.TestCase):
         parsed_statement3 = If(GreaterThan(Var('X'), Num(2)),
                                Let(Assign(String('Y'), Num(3))))
         parsed_statement4 = If(NotEqual(Var('X'), Num(2)),
-                             Let(Assign(String('Y'), Num(3))))
-        parsed_statement5 = If(NotEqual(Add(Var('X'), Num(2)), Sub(Num(2),
-                                                                   Num(2))),
-                             Let(Assign(String('Y'), Num(3))))
+                               Let(Assign(String('Y'), Num(3))))
+        parsed_statement5 = If(NotEqual(Add(Var('X'), Num(2)),
+                                        Sub(Num(2), Num(2))),
+                               Let(Assign(String('Y'), Num(3))))
 
         self.assertEqual(self.e.parse(if_statement1), parsed_statement1)
         self.assertEqual(self.e.parse(if_statement2), parsed_statement2)
