@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
-import types
+# import types
 from pyTBasic.basic_types import *
-from pyTBasic import parser
+# from pyTBasic import parser
 
-symbol_table = { chr(i):0 for i in range(65, 91) }
+symbol_table = {chr(i): 0 for i in range(65, 91)}
+
 
 class NodeVisitor:
     def visit(self, node):
@@ -16,6 +17,7 @@ class NodeVisitor:
 
     def generic_visit(self, node):
         raise RuntimeError('No {} method'.format('visit_' + type(node).__name__))
+
 
 class Evaluator(NodeVisitor):
     def visit_String(self, node):
