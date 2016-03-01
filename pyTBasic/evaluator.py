@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-# import types
-from pyTBasic.basic_types import *
-# from pyTBasic import parser
-
 symbol_table = {chr(i): 0 for i in range(65, 91)}
 
 
