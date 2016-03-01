@@ -2,14 +2,14 @@
 
 
 class Node:
-    pass
+    __slots__ = ()
 
     def __repr__(self):
         return ''.join([str(type(self).__name__), '(', str(self.value), ')'])
 
-    def __eq__(self, other):
-        return self.__dict__ == other.__dict__ \
-                and type(self).__name__ == type(other).__name__
+    # def __eq__(self, other):
+    #       return self.__dict__ == other.__dict__ \
+    #            and type(self).__name__ == type(other).__name__
 
 
 class UnaryOperator(Node):
@@ -35,57 +35,57 @@ class BinaryOperator(Node):
 
 
 class Relop(BinaryOperator):
-    pass
+    __slots__ = ()
 
 
 class LineNum(BinaryOperator):
-    pass
+    __slots__ = ()
 
 
 # Operators
 class Add(BinaryOperator):
-    pass
+    __slots__ = ()
 
 
 class Sub(BinaryOperator):
-    pass
+    __slots__ = ()
 
 
 class Mul(BinaryOperator):
-    pass
+    __slots__ = ()
 
 
 class Div(BinaryOperator):
-    pass
+    __slots__ = ()
 
 
 # Relative Operators
 class Equal(Relop):
-    pass
+    __slots__ = ()
 
 
 class NotEqual(Relop):
-    pass
+    __slots__ = ()
 
 
 class GreaterThan(Relop):
-    pass
+    __slots__ = ()
 
 
 class GreaterOrEqualThan(Relop):
-    pass
+    __slots__ = ()
 
 
 class LessThan(Relop):
-    pass
+    __slots__ = ()
 
 
 class LessOrEqualThan(Relop):
-    pass
+    __slots__ = ()
 
 
 class Assign(BinaryOperator):
-    pass
+    __slots__ = ()
 
 
 # Terminals
@@ -112,44 +112,44 @@ class String(Node):
 
 # Keywords
 class Print(UnaryOperator):
-    pass
+    __slots__ = ()
 
 
 class If(BinaryOperator):
-    pass
+    __slots__ = ()
 
 
 class Goto(UnaryOperator):
-    pass
+    __slots__ = ()
 
 
 class Input(UnaryOperator):
-    pass
+    __slots__ = ()
 
 
 class Let(UnaryOperator):
-    pass
+    __slots__ = ()
 
 
 class Gosub(UnaryOperator):
-    pass
+    __slots__ = ()
 
 
 class Return(UnaryOperator):
-    pass
+    __slots__ = ()
 
 
 class Clear(UnaryOperator):
-    pass
+    __slots__ = ()
 
 
 class List(UnaryOperator):
-    pass
+    __slots__ = ()
 
 
 class Run(UnaryOperator):
-    pass
+    __slots__ = ()
 
 
 class End(UnaryOperator):
-    pass
+    __slots__ = ()
