@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 symbol_table = {chr(i): 0 for i in range(65, 91)}
+line_num_table = []
 
 
 class NodeVisitor:
@@ -78,7 +79,7 @@ class Evaluator(NodeVisitor):
         pass
 
     def visit_Let(self, node):
-        self.visit(node.operand)
+        symbol_table[self.visit(node.left)] = self.visit(node.right)
 
     def visit_Assign(self, node):
         symbol_table[self.visit(node.left)] = self.visit(node.right)
@@ -93,13 +94,21 @@ class Evaluator(NodeVisitor):
         pass
 
     def visit_List(self, node):
-        pass
+        for line in sorted(line_num_table, key=self.sort_key):
+            print(line)
 
     def visit_Run(self, node):
-        pass
+        for line in sorted(line_num_table, key=self.sort_key):
+            self.visit(line.right)
 
     def visit_End(self, node):
         pass
+
+    def visit_LineNum(self, node):
+        line_num_table.append(node)
+
+    def sort_key(self, node):
+        return node.left.value
 
 
 class PrintParseTree(NodeVisitor):
@@ -158,4 +167,7 @@ class PrintParseTree(NodeVisitor):
         print(node)
 
     def visit_End(self, node):
+        print(node)
+
+    def visit_LineNum(self, node):
         print(node)

@@ -14,7 +14,11 @@ if __name__ == '__main__':
         try:
             # parsed = b_parser.parse(_input.upper())
             # representation = b_print_tree.visit(parsed)
-            result = b_evaluator.visit(b_parser.parse(_input.upper()))
+            result = b_evaluator.visit(
+                b_parser.parse(
+                    _input.upper()
+                )
+            )
         except SyntaxError as e:
             print("SYNTAX ERROR ", e)
         else:

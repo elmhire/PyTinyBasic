@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import re
 from collections import namedtuple
@@ -231,7 +231,8 @@ class BasicParser:
         if self.tok.value != '=':
             raise SyntaxError('Expected EQUAL')
         expr_val = self.expr()
-        return Let(Assign(var, expr_val))
+        # return Let(Assign(var, expr_val))
+        return Let(var, expr_val)
 
     def kw_gosub(self):
         # kw = 'GOSUB'

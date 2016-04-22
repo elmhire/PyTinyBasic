@@ -21,6 +21,9 @@ class UnaryOperator(Node):
     def __repr__(self):
         return ''.join([str(type(self).__name__), '(', str(self.operand), ')'])
 
+    def __str__(self):
+        return ''.join([str(type(self).__name__), ' ', str(self.operand)])
+
 
 class BinaryOperator(Node):
     __slots__ = ['left', 'right']
@@ -33,6 +36,11 @@ class BinaryOperator(Node):
         return ''.join([str(type(self).__name__),
                         '(', repr(self.left), ', ', repr(self.right), ')'])
 
+    def __str__(self):
+        return ''.join([str(self.left), ' ',
+                        str(self.right)
+                        ])
+
 
 class Relop(BinaryOperator):
     __slots__ = ()
@@ -40,6 +48,9 @@ class Relop(BinaryOperator):
 
 class LineNum(BinaryOperator):
     __slots__ = ()
+
+    def __str__(self):
+        return ''.join([str(self.left.value), ' ', str(self.right)])
 
 
 # Operators
@@ -62,6 +73,9 @@ class Div(BinaryOperator):
 # Relative Operators
 class Equal(Relop):
     __slots__ = ()
+
+    def __str__(self):
+        return ''.join([str(self.left), ' = ', str(self.right)])
 
 
 class NotEqual(Relop):
@@ -95,12 +109,18 @@ class Num(Node):
     def __init__(self, value):
         self.value = value
 
+    def __str__(self):
+        return str(self.value)
+
 
 class Var(Node):
     __slots__ = ['value']
 
     def __init__(self, value):
         self.value = value
+
+    def __str__(self):
+        return str(self.value)
 
 
 class String(Node):
@@ -109,14 +129,24 @@ class String(Node):
     def __init__(self, value):
         self.value = value
 
+    def __str__(self):
+        return str(self.value)
+
 
 # Keywords
 class Print(UnaryOperator):
     __slots__ = ()
 
+    def __str__(self):
+        return 'PRINT ' + ''.join([str(i) for i in self.operand])
+
 
 class If(BinaryOperator):
     __slots__ = ()
+
+    def __str__(self):
+        # return 'IF ' + ''.join([str(self.left)])
+        return ''.join(['IF ', str(self.left), ' THEN ', str(self.right)])
 
 
 class Goto(UnaryOperator):
@@ -127,8 +157,11 @@ class Input(UnaryOperator):
     __slots__ = ()
 
 
-class Let(UnaryOperator):
+class Let(BinaryOperator):
     __slots__ = ()
+
+    def __str__(self):
+        return ''.join(['LET ', str(self.left), ' = ', str(self.right)])
 
 
 class Gosub(UnaryOperator):
